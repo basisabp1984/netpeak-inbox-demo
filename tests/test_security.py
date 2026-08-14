@@ -198,3 +198,28 @@ def test_csp_forbids_external_sources(open_client):
     assert "default-src 'self'" in csp
     assert "frame-ancestors 'none'" in csp
     assert "unsafe-inline" not in csp, "инлайн-скрипты разрешать не нужно — их нет"
+
+
+# ---------------------------------------------------------------- CSP и фронтенд
+
+def test_frontend_has_no_inline_styles():
+    """CSP без 'unsafe-inline' блокирует style="…" — полоски диаграмм
+    перестают отрисовываться. Дефект найден только открытием живой страницы
+    браузером: тесты API его увидеть не могли.
+    """
+    web = Path(__file__).parent.parent / "web"
+    for name in ("app.js", "index.html"):
+        text = (web / name).read_text(encoding="utf-8")
+        assert 'style="' not in text, (
+            f"{name}: инлайн-стиль будет заблокирован CSP. "
+            f"Используй класс или element.style.setProperty()"
+        )
+
+
+def test_frontend_has_no_inline_event_handlers():
+    """onclick="…" тоже блокируется CSP."""
+    web = Path(__file__).parent.parent / "web"
+    for name in ("app.js", "index.html"):
+        text = (web / name).read_text(encoding="utf-8").lower()
+        for handler in ("onclick=", "onload=", "onerror=", "onchange="):
+            assert handler not in text, f"{name}: инлайн-обработчик {handler} нарушает CSP"

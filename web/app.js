@@ -54,11 +54,18 @@ function bars(el, data, colorByKey = false) {
   const max = Math.max(...Object.values(data), 1);
   el.innerHTML = Object.entries(data).map(([k, n]) => {
     const cls = colorByKey ? ` ${k}` : '';
+    // Ширина не пишется в атрибут style: CSP запрещает инлайн-стили, и полоски
+    // просто не отрисовались бы. Значение кладём в data-* и применяем ниже
+    // через setProperty — это программный путь, он под запрет не попадает.
     return `<div class="bar-row">
       <div class="bar-top"><span>${esc(k)}</span><span class="n">${n}</span></div>
-      <div class="bar-track"><div class="bar-fill${cls}" style="width:${(n / max) * 100}%"></div></div>
+      <div class="bar-track"><div class="bar-fill${cls}" data-pct="${(n / max) * 100}"></div></div>
     </div>`;
   }).join('');
+
+  el.querySelectorAll('.bar-fill').forEach((bar) => {
+    bar.style.setProperty('width', `${bar.dataset.pct}%`);
+  });
 }
 
 function renderBreakdowns() {
@@ -158,14 +165,14 @@ function okBody(it) {
   let html = `<p class="summary">${esc(it.short_summary)}</p>`;
 
   html += `<div class="field"><span class="k">Відділ</span><span>${
-    it.target_department ? esc(it.target_department) : '<span style="opacity:.5">не визначено</span>'}</span></div>`;
+    it.target_department ? esc(it.target_department) : '<span class="dim">не визначено</span>'}</span></div>`;
   html += `<div class="field"><span class="k">Мова</span><span>${esc(it.language)}</span></div>`;
 
   if (it.requested_actions.length) {
-    html += `<div class="field" style="display:block"><span class="k">Дії</span>
+    html += `<div class="field field-block"><span class="k">Дії</span>
       <ul class="actions">${it.requested_actions.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>`;
   } else {
-    html += '<div class="field"><span class="k">Дії</span><span style="opacity:.5">конкретних дій не названо</span></div>';
+    html += '<div class="field"><span class="k">Дії</span><span class="dim">конкретних дій не названо</span></div>';
   }
 
   if (it.clarification_questions.length) {
@@ -186,7 +193,7 @@ function failedBody(it) {
     <div class="side-label">Модель не повернула валідну структуру</div>
     <div>${esc(it.error)}</div>
     ${it.raw_llm_output ? `<pre>${esc(it.raw_llm_output)}</pre>` : ''}
-    <div style="margin-top:7px;opacity:.8">Запис збережено зі status="failed" — не втрачено.</div>
+    <div class="err-note">Запис збережено зі status="failed" — не втрачено.</div>
   </div>`;
 }
 
