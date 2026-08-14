@@ -177,6 +177,9 @@ def get_items(
     status: str | None = None,
     needs_clarification: bool | None = None,
     search: str | None = None,
+    request_id: str | None = None,
+    limit: int | None = None,
+    offset: int = 0,
     path: Path | str | None = None,
 ) -> list[dict]:
     """Фильтрация делается в SQL, а не в Python: на демо разница незаметна,
@@ -194,15 +197,35 @@ def get_items(
     if status:
         sql += " AND status = ?"
         params.append(status)
+    if request_id:
+        # Выборка одной записи делается индексом в SQL, а не фильтрацией
+        # всего списка в Python — иначе на большом прогоне запрос одной
+        # карточки тянул бы из базы весь набор.
+        sql += " AND request_id = ?"
+        params.append(request_id)
     if needs_clarification is not None:
         sql += " AND needs_clarification = ?"
         params.append(int(needs_clarification))
     if search:
-        sql += " AND (raw_text LIKE ? OR short_summary LIKE ? OR request_id LIKE ?)"
-        like = f"%{search}%"
+        # ESCAPE обязателен: без него '%' и '_' в пользовательском вводе работают
+        # как wildcard'ы — запрос `search=%` возвращал вообще всё, в обход фильтра.
+        # Это не SQL-инъекция (параметры связаны), но обход намерения фильтра.
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        sql += (
+            " AND (raw_text LIKE ? ESCAPE '\\'"
+            " OR short_summary LIKE ? ESCAPE '\\'"
+            " OR request_id LIKE ? ESCAPE '\\')"
+        )
+        like = f"%{escaped}%"
         params += [like, like, like]
 
     sql += " ORDER BY id"
+
+    if limit is not None:
+        # Ограничение размера ответа: на 19 записях незаметно, но открытый
+        # эндпоинт без потолка — это способ нагрузить сервис одним запросом.
+        sql += " LIMIT ? OFFSET ?"
+        params += [limit, offset]
 
     with connect(path) as conn:
         rows = [dict(r) for r in conn.execute(sql, params)]

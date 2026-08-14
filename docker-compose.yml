@@ -5,6 +5,9 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:8011:8000"   # наружу только через Caddy, не напрямую
+    environment:
+      # Токен доступа. Пусто = демо открыто (локальный режим).
+      DEMO_ACCESS_TOKEN: ${DEMO_ACCESS_TOKEN:-}
     volumes:
       - demo-data:/srv/data
 
