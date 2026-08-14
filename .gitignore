@@ -1,0 +1,21 @@
+# secrets
+.env
+*.key
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# данные и артефакты
+*.db
+data/
+seed/output.json
+
+# os / ide
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

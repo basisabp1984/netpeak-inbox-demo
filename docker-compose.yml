@@ -1,0 +1,12 @@
+services:
+  demo:
+    build: .
+    container_name: netpeak-demo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8011:8000"   # наружу только через Caddy, не напрямую
+    volumes:
+      - demo-data:/srv/data
+
+volumes:
+  demo-data:

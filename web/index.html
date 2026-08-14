@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inbox Classifier — розбір вхідних запитів</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📥</text></svg>">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <h1>Inbox Classifier</h1>
+        <p>LLM-розбір вхідних запитів AI-юніту</p>
+      </div>
+    </div>
+    <div class="run-meta" id="runMeta"></div>
+  </div>
+</header>
+
+<main>
+  <!-- Показатели прогона -->
+  <section class="stats" id="stats"></section>
+
+  <!-- Разрезы -->
+  <section class="breakdowns">
+    <div class="card">
+      <h2>Категорії</h2>
+      <div class="bars" id="byCategory"></div>
+    </div>
+    <div class="card">
+      <h2>Пріоритет</h2>
+      <div class="bars" id="byPriority"></div>
+    </div>
+    <div class="card">
+      <h2>Відділи</h2>
+      <div class="bars" id="byDepartment"></div>
+    </div>
+  </section>
+
+  <!-- Фильтры -->
+  <section class="toolbar">
+    <input type="search" id="search" placeholder="Пошук по тексту, суті або ID…" autocomplete="off">
+    <div class="chips" id="chips">
+      <button class="chip active" data-filter="all">Усі</button>
+      <button class="chip" data-filter="high">🔥 Термінові</button>
+      <button class="chip" data-filter="clarify">❓ Потребують уточнення</button>
+      <button class="chip" data-filter="lowconf">⚠️ Низька впевненість</button>
+      <button class="chip" data-filter="dupes">♻️ Дублі</button>
+      <button class="chip" data-filter="failed">✕ Збої</button>
+    </div>
+    <span class="count" id="count"></span>
+  </section>
+
+  <!-- Лента запросов -->
+  <section class="feed" id="feed"></section>
+</main>
+
+<footer>
+  <p>
+    Демо-вітрина до тестового завдання ·
+    <a href="https://github.com/basisabp1984/netpeak-inbox-classifier" target="_blank" rel="noopener">код пайплайну на GitHub</a> ·
+    <a href="/api/docs" target="_blank" rel="noopener">API</a>
+  </p>
+  <p class="muted">Дані — результат реального прогону класифікатора. Ліворуч у кожній картці — вихідний текст, праворуч — те, що витягла модель.</p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
